@@ -1,8 +1,14 @@
 package xyz.devxyz.fcs;
 
+import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -32,6 +38,10 @@ public class EditorActivity extends AppCompatActivity {
     private TextView logView;
     private TextView errorsHeader;
     private LinearLayout errorsPanel;
+    private TextView lineNumbers;
+    private Spinner spinner;
+    private boolean navigateMode = false;
+    private boolean formattedOnOpen = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,23 +66,53 @@ public class EditorActivity extends AppCompatActivity {
         nav.setNavigationItemSelectedListener(item -> {
             drawer.closeDrawers();
             int id = item.getItemId();
-            if (id == R.id.nav_find) {
+            if (id == R.id.nav_navigate) {
+                navigateMode = !navigateMode;
+                Toast.makeText(this, navigateMode
+                        ? "Navigate Mode ON — pindutin ang isang pangalan sa code para tumalon sa definition nito"
+                        : "Navigate Mode OFF", Toast.LENGTH_SHORT).show();
+            } else if (id == R.id.nav_find) {
                 showFindDialog();
+            } else if (id == R.id.nav_refactor) {
+                showRefactorDialog();
+            } else if (id == R.id.nav_code) {
+                showCodeDialog();
+            } else if (id == R.id.nav_format) {
+                formatCurrentFile();
             } else if (id == R.id.nav_project) {
                 finish();
+            } else if (id == R.id.nav_tools) {
+                showToolsDialog();
             } else if (id == R.id.nav_settings) {
                 startActivity(new android.content.Intent(this, SettingsActivity.class));
             } else if (id == R.id.nav_exit) {
                 finishAffinity();
-            } else {
-                Toast.makeText(this, "Susuportahan sa susunod na phase",
-                        Toast.LENGTH_SHORT).show();
             }
             return true;
         });
         editor = findViewById(R.id.editor);
         logView = findViewById(R.id.build_log);
-        Spinner spinner = findViewById(R.id.file_spinner);
+        lineNumbers = findViewById(R.id.line_numbers);
+        lineNumbers.setVisibility(SettingsActivity.toggle(this, "Editor",
+                "Show line numbers", true) ? View.VISIBLE : View.GONE);
+        editor.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
+            @Override public void onTextChanged(CharSequence s, int st, int b, int c) {}
+            @Override public void afterTextChanged(Editable s) { updateLineNumbers(); }
+        });
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            editor.setOnScrollChangeListener((v, sx, sy, ox, oy) ->
+                    lineNumbers.scrollTo(0, sy));
+        }
+        editor.setOnTouchListener((v, e) -> {
+            if (navigateMode && e.getAction() == MotionEvent.ACTION_UP) {
+                int offset = editor.getOffsetForPosition(e.getX(), e.getY());
+                String word = CodeTools.wordAt(editor.getText().toString(), offset);
+                if (word != null) navigateTo(word);
+            }
+            return false;
+        });
+        spinner = findViewById(R.id.file_spinner);
         refreshFileList(spinner);
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -234,6 +274,215 @@ public class EditorActivity extends AppCompatActivity {
                 .show();
     }
 
+    private void updateLineNumbers() {
+        int lines = Math.max(1, editor.getLineCount());
+        StringBuilder b = new StringBuilder();
+        for (int i = 1; i <= lines; i++) b.append(i).append("\n");
+        lineNumbers.setText(b.toString());
+        lineNumbers.scrollTo(0, editor.getScrollY());
+    }
+
+    private boolean codeStyleUseSpaces() {
+        return SettingsActivity.toggle(this, "Code Style",
+                "Insert spaces instead of tab", true);
+    }
+
+    private int codeStyleTabSize() {
+        try {
+            return Integer.parseInt(SettingsActivity.prefs(this)
+                    .getString("Code Style:Tab size", "4"));
+        } catch (NumberFormatException e) {
+            return 4;
+        }
+    }
+
+    private void formatCurrentFile() {
+        editor.setText(CodeTools.formatJava(editor.getText().toString(),
+                codeStyleUseSpaces(), codeStyleTabSize()));
+        Toast.makeText(this, "Na-format (I-save para ma-apply)",
+                Toast.LENGTH_SHORT).show();
+    }
+
+    private void navigateTo(String word) {
+        try {
+            Object[] def = CodeTools.findDefinition(
+                    ProjectManager.projectDir(this, projectName), word);
+            if (def == null) {
+                Toast.makeText(this, "Walang definition na nakita para sa " + word,
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+            File f = (File) def[0];
+            int offset = (int) def[1];
+            int idx = files.indexOf(f);
+            if (idx >= 0) spinner.setSelection(idx);
+            openFile(f);
+            editor.setSelection(Math.min(offset, editor.getText().length()));
+            editor.requestFocus();
+        } catch (Exception e) {
+            Toast.makeText(this, "Navigate failed: " + e.getMessage(),
+                    Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void backupFile(File project, File f) throws Exception {
+        String rel = f.getPath().substring(project.getPath().length() + 1);
+        File dest = new File(new File(new File(getFilesDir(), "autofix-backups"),
+                projectName), rel);
+        dest.getParentFile().mkdirs();
+        java.io.FileInputStream in = new java.io.FileInputStream(f);
+        java.io.FileOutputStream out = new java.io.FileOutputStream(dest);
+        byte[] buf = new byte[8192];
+        int n;
+        while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
+        in.close();
+        out.close();
+    }
+
+    private void showRefactorDialog() {
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(48, 24, 48, 0);
+        final EditText oldInput = new EditText(this);
+        oldInput.setHint("Lumang pangalan");
+        final EditText newInput = new EditText(this);
+        newInput.setHint("Bagong pangalan");
+        box.addView(oldInput);
+        box.addView(newInput);
+        new AlertDialog.Builder(this)
+                .setTitle("Refactor — Rename")
+                .setView(box)
+                .setPositiveButton("Palitan", (d, w) -> {
+                    String oldName = oldInput.getText().toString().trim();
+                    String newName = newInput.getText().toString().trim();
+                    if (oldName.isEmpty() || newName.isEmpty()) return;
+                    try {
+                        File project = ProjectManager.projectDir(this, projectName);
+                        java.util.regex.Pattern p = java.util.regex.Pattern.compile(
+                                "\\b" + java.util.regex.Pattern.quote(oldName) + "\\b");
+                        for (File f : ProjectManager.listFiles(project)) {
+                            String name = f.getName();
+                            if (!(name.endsWith(".java") || name.endsWith(".xml")
+                                    || name.endsWith(".gradle"))) continue;
+                            if (p.matcher(ProjectManager.read(f)).find()) backupFile(project, f);
+                        }
+                        int changed = CodeTools.renameInProject(project, oldName, newName);
+                        Toast.makeText(this, changed == 0
+                                ? "Walang nahanap na " + oldName
+                                : "Napalitan sa " + changed + " na file (backup: Ibalik ang backup)",
+                                Toast.LENGTH_SHORT).show();
+                        refreshFileList(spinner);
+                        if (currentFile != null) openFile(currentFile);
+                    } catch (Exception e) {
+                        Toast.makeText(this, "Refactor failed: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show();
+                    }
+                })
+                .setNegativeButton("Kansela", null)
+                .show();
+    }
+
+    private void showCodeDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Code")
+                .setItems(new String[]{"Generate getters/setters", "Add import"},
+                        (d, which) -> {
+                            if (which == 0) {
+                                String result = CodeTools.generateGettersSetters(
+                                        editor.getText().toString());
+                                if (result == null) {
+                                    Toast.makeText(this, "Walang private field na kulang ng getter/setter",
+                                            Toast.LENGTH_SHORT).show();
+                                } else {
+                                    editor.setText(result);
+                                    Toast.makeText(this, "Na-generate (I-save para ma-apply)",
+                                            Toast.LENGTH_SHORT).show();
+                                }
+                            } else {
+                                final EditText input = new EditText(this);
+                                input.setHint("hal. java.util.List");
+                                new AlertDialog.Builder(this)
+                                        .setTitle("Add import")
+                                        .setView(input)
+                                        .setPositiveButton("Idagdag", (d2, w2) -> {
+                                            String imp = input.getText().toString().trim();
+                                            if (imp.isEmpty()) return;
+                                            String code = editor.getText().toString();
+                                            if (code.contains("import " + imp + ";")) {
+                                                Toast.makeText(this, "Naka-import na",
+                                                        Toast.LENGTH_SHORT).show();
+                                                return;
+                                            }
+                                            int at = code.indexOf(";\n");
+                                            String updated;
+                                            if (code.startsWith("package ") && at >= 0) {
+                                                updated = code.substring(0, at + 2)
+                                                        + "import " + imp + ";\n"
+                                                        + code.substring(at + 2);
+                                            } else {
+                                                updated = "import " + imp + ";\n" + code;
+                                            }
+                                            editor.setText(updated);
+                                            Toast.makeText(this, "Naidagdag (I-save para ma-apply)",
+                                                    Toast.LENGTH_SHORT).show();
+                                        })
+                                        .setNegativeButton("Kansela", null)
+                                        .show();
+                            }
+                        })
+                .show();
+    }
+
+    private void showToolsDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Tools")
+                .setItems(new String[]{"Export project as ZIP", "Delete project",
+                                "Open sample project"},
+                        (d, which) -> {
+                            File project = ProjectManager.projectDir(this, projectName);
+                            if (which == 0) {
+                                try {
+                                    File out = new File(new File(getFilesDir(), "exports"),
+                                            projectName + ".zip");
+                                    CodeTools.exportZip(project, out);
+                                    android.net.Uri uri = androidx.core.content.FileProvider
+                                            .getUriForFile(this,
+                                                    "xyz.devxyz.fcs.fileprovider", out);
+                                    Intent share = new Intent(Intent.ACTION_SEND);
+                                    share.setType("application/zip");
+                                    share.putExtra(Intent.EXTRA_STREAM, uri);
+                                    share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                    startActivity(Intent.createChooser(share,
+                                            "I-share ang " + projectName + ".zip"));
+                                } catch (Exception e) {
+                                    Toast.makeText(this, "Export failed: " + e.getMessage(),
+                                            Toast.LENGTH_LONG).show();
+                                }
+                            } else if (which == 1) {
+                                new AlertDialog.Builder(this)
+                                        .setTitle("Burahin ang project?")
+                                        .setMessage("Mabubura ang " + projectName
+                                                + " at lahat ng file nito. Hindi ito maibabalik maliban sa backup.")
+                                        .setPositiveButton("Burahin", (d2, w2) -> {
+                                            CodeTools.deleteRecursive(project);
+                                            finish();
+                                        })
+                                        .setNegativeButton("Kansela", null)
+                                        .show();
+                            } else {
+                                try {
+                                    ProjectManager.createProject(this, "SampleApp");
+                                } catch (Exception ignored) {
+                                    // May SampleApp na — buksan na lang.
+                                }
+                                Intent i = new Intent(this, EditorActivity.class);
+                                i.putExtra("project", "SampleApp");
+                                startActivity(i);
+                            }
+                        })
+                .show();
+    }
+
     private void refreshFileList(Spinner spinner) {
         File project = ProjectManager.projectDir(this, projectName);
         files = ProjectManager.listFiles(project);
@@ -251,7 +500,22 @@ public class EditorActivity extends AppCompatActivity {
     private void openFile(File f) {
         currentFile = f;
         try {
-            editor.setText(ProjectManager.read(f));
+            String code = ProjectManager.read(f);
+            if (!formattedOnOpen && f.getName().endsWith(".java")
+                    && SettingsActivity.toggle(this, "Code Style",
+                            "Format project when opening a project", false)) {
+                formattedOnOpen = true;
+                code = CodeTools.formatJava(code, codeStyleUseSpaces(), codeStyleTabSize());
+            }
+            editor.setText(code);
+            updateLineNumbers();
+            if (SettingsActivity.toggle(this, "Editor",
+                    "Show the soft keyboard when opening code files", true)) {
+                editor.requestFocus();
+                InputMethodManager imm = (InputMethodManager)
+                        getSystemService(INPUT_METHOD_SERVICE);
+                if (imm != null) imm.showSoftInput(editor, 0);
+            }
         } catch (Exception e) {
             editor.setText("");
             Toast.makeText(this, "Hindi mabuksan: " + e.getMessage(), Toast.LENGTH_LONG).show();

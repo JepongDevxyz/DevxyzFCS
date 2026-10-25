@@ -6,7 +6,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
@@ -48,11 +50,14 @@ public class MainActivity extends AppCompatActivity {
             }
             return true;
         });
+        TextView breadcrumb = findViewById(R.id.breadcrumb);
+        breadcrumb.setText(ProjectManager.projectsDir(this).getPath());
         RecyclerView list = findViewById(R.id.project_list);
         list.setLayoutManager(new LinearLayoutManager(this));
         adapter = new ProjectAdapter(ProjectManager.listProjects(this));
         list.setAdapter(adapter);
         findViewById(R.id.row_create).setOnClickListener(v -> showNewProjectDialog());
+        findViewById(R.id.row_clone).setOnClickListener(v -> showCloneDialog());
     }
 
     @Override
@@ -86,6 +91,51 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
+    private void showCloneDialog() {
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(48, 24, 48, 0);
+        final EditText urlInput = new EditText(this);
+        urlInput.setHint("https://github.com/owner/repo");
+        final EditText nameInput = new EditText(this);
+        nameInput.setHint("Pangalan ng project");
+        TextView note = new TextView(this);
+        note.setText("GitHub URLs lang sa ngayon - dina-download ang repo "
+                + "bilang zip (main, tapos master kung wala).");
+        note.setTextColor(0xFF757575);
+        box.addView(urlInput);
+        box.addView(nameInput);
+        box.addView(note);
+        new AlertDialog.Builder(this)
+                .setTitle("Clone Git repository...")
+                .setView(box)
+                .setPositiveButton("Clone", (d, w) -> {
+                    String url = urlInput.getText().toString().trim();
+                    String name = nameInput.getText().toString().trim();
+                    if (url.isEmpty() || name.isEmpty()) return;
+                    Toast.makeText(this, "Kino-clone ang " + name + "...",
+                            Toast.LENGTH_SHORT).show();
+                    new Thread(() -> {
+                        try {
+                            CodeTools.cloneGitHub(url, name,
+                                    ProjectManager.projectsDir(MainActivity.this));
+                            runOnUiThread(() -> {
+                                adapter.setProjects(ProjectManager.listProjects(this));
+                                openEditor(name);
+                            });
+                        } catch (Exception e) {
+                            runOnUiThread(() -> new AlertDialog.Builder(this)
+                                    .setTitle("Hindi na-clone")
+                                    .setMessage(e.getMessage())
+                                    .setPositiveButton("OK", null)
+                                    .show());
+                        }
+                    }).start();
+                })
+                .setNegativeButton("Kansela", null)
+                .show();
+    }
+
     private void openEditor(String name) {
         Intent i = new Intent(this, EditorActivity.class);
         i.putExtra("project", name);
@@ -113,6 +163,9 @@ public class MainActivity extends AppCompatActivity {
         public void onBindViewHolder(Holder h, int pos) {
             String name = projects.get(pos);
             h.name.setText(name);
+            int n = ProjectManager.listFiles(ProjectManager.projectDir(
+                    MainActivity.this, name)).size();
+            h.files.setText(n + (n == 1 ? " file" : " files"));
             h.itemView.setOnClickListener(v -> openEditor(name));
         }
 
@@ -120,10 +173,11 @@ public class MainActivity extends AppCompatActivity {
         public int getItemCount() { return projects.size(); }
 
         class Holder extends RecyclerView.ViewHolder {
-            TextView name;
+            TextView name, files;
             Holder(View v) {
                 super(v);
                 name = v.findViewById(R.id.project_name);
+                files = v.findViewById(R.id.project_files);
             }
         }
     }

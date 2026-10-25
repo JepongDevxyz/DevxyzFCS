@@ -18,14 +18,30 @@
             android:id="@+id/file_spinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
-        <EditText
-            android:id="@+id/editor"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:gravity="top|start"
-            android:fontFamily="monospace"
-            android:hint="Pumili ng file sa itaas" />
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/line_numbers"
+                android:layout_width="40dp"
+                android:layout_height="match_parent"
+                android:gravity="end|top"
+                android:fontFamily="monospace"
+                android:textSize="14sp"
+                android:textColor="#757575"
+                android:paddingEnd="8dp" />
+            <EditText
+                android:id="@+id/editor"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="top|start"
+                android:fontFamily="monospace"
+                android:textSize="14sp"
+                android:hint="Pumili ng file sa itaas" />
+        </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
