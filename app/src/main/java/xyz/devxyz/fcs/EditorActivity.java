@@ -190,7 +190,7 @@ public class EditorActivity extends AppCompatActivity {
             texts.setOrientation(LinearLayout.VERTICAL);
             TextView file = new TextView(this);
             file.setText(issue[0]);
-            file.setTextStyle(android.graphics.Typeface.BOLD);
+            file.setTypeface(null, android.graphics.Typeface.BOLD);
             TextView msg = new TextView(this);
             msg.setText(issue[1]);
             msg.setTextColor(0xFF757575);
