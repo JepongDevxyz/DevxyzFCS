@@ -12,24 +12,45 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="#009688"
+            android:background="#008577"
             app:titleTextColor="#FFFFFF"
             app:title="DevxyzFCS" />
-        <TextView
-            android:id="@+id/breadcrumb"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingTop="8dp"
-            android:textColor="#757575"
-            android:textSize="14sp" />
+            android:orientation="horizontal"
+            android:background="#FFFFFF"
+            android:paddingStart="16dp">
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="3dp"
+                android:paddingEnd="5dp"
+                android:src="@drawable/ic_folder" />
+            <TextView
+                android:id="@+id/breadcrumb"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_gravity="center_vertical"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textColor="#222222"
+                android:textSize="16sp" />
+        </LinearLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#888888" />
         <LinearLayout
             android:id="@+id/row_create"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="16dp">
+            android:paddingStart="20dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="4dp">
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -42,14 +63,18 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Create New Project..."
-                android:textSize="18sp" />
+                android:textColor="#222222"
+                android:textSize="16sp" />
         </LinearLayout>
         <LinearLayout
             android:id="@+id/row_clone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="16dp">
+            android:paddingStart="20dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="4dp">
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -62,12 +87,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Clone Git repository..."
-                android:textSize="18sp" />
+                android:textColor="#222222"
+                android:textSize="16sp" />
         </LinearLayout>
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="#DDDDDD" />
+            android:background="#EEEEEE" />
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/project_list"
             android:layout_width="match_parent"

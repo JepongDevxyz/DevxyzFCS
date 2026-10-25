@@ -201,7 +201,8 @@ public class EditorActivity extends AppCompatActivity {
         });
     }
 
-    /** Errors header + per-file errors panel, like a classic IDE. */
+    /** Errors header + per-file errors panel, grouped like a classic IDE:
+     *  file row (icon + 16sp name), then each message indented 40dp at 14sp gray. */
     private void refreshErrors(File project) {
         List<String[]> issues = BuildValidator.fileIssues(project);
         int n = issues.size();
@@ -216,28 +217,37 @@ public class EditorActivity extends AppCompatActivity {
         errorsHeader.setTextColor(0xFFD32F2F);
         errorsPanel.setVisibility(View.VISIBLE);
         errorsPanel.removeAllViews();
+        // Group messages under each file, in first-seen order.
+        List<String> order = new ArrayList<>();
+        java.util.Map<String, List<String>> byFile = new java.util.LinkedHashMap<>();
         for (String[] issue : issues) {
+            if (!byFile.containsKey(issue[0])) {
+                byFile.put(issue[0], new ArrayList<>());
+                order.add(issue[0]);
+            }
+            byFile.get(issue[0]).add(issue[1]);
+        }
+        float density = getResources().getDisplayMetrics().density;
+        int pad20 = Math.round(20 * density);
+        int pad10 = Math.round(10 * density);
+        int pad4 = Math.round(4 * density);
+        int indent40 = Math.round(40 * density);
+        for (String fileName : order) {
             LinearLayout row = new LinearLayout(this);
             row.setOrientation(LinearLayout.HORIZONTAL);
-            row.setPadding(8, 8, 8, 8);
+            row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            row.setPadding(pad20, pad4, pad10, pad4);
             TextView x = new TextView(this);
             x.setText("\u2715");
             x.setTextColor(0xFFD32F2F);
-            x.setTextSize(18);
-            x.setPadding(0, 0, 12, 0);
+            x.setTextSize(16);
+            x.setPadding(0, 0, Math.round(6 * density), 0);
             row.addView(x);
-            LinearLayout texts = new LinearLayout(this);
-            texts.setOrientation(LinearLayout.VERTICAL);
             TextView file = new TextView(this);
-            file.setText(issue[0]);
-            file.setTypeface(null, android.graphics.Typeface.BOLD);
-            TextView msg = new TextView(this);
-            msg.setText(issue[1]);
-            msg.setTextColor(0xFF757575);
-            texts.addView(file);
-            texts.addView(msg);
-            row.addView(texts);
-            final String fileName = issue[0];
+            file.setText(fileName);
+            file.setTextSize(16);
+            file.setTextColor(0xFF222222);
+            row.addView(file);
             row.setOnClickListener(v -> {
                 for (File f : files) {
                     if (f.getName().equals(fileName)) {
@@ -247,6 +257,14 @@ public class EditorActivity extends AppCompatActivity {
                 }
             });
             errorsPanel.addView(row);
+            for (String msgText : byFile.get(fileName)) {
+                TextView msg = new TextView(this);
+                msg.setText(msgText);
+                msg.setTextSize(14);
+                msg.setTextColor(0xFF888888);
+                msg.setPadding(indent40, pad4, pad10, pad4);
+                errorsPanel.addView(msg);
+            }
         }
     }
 

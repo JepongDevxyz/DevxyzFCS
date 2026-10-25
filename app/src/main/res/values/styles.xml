@@ -2,8 +2,8 @@
 <resources>
     <!-- DevxyzFCS theme: teal header like a classic Android IDE, own branding. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="colorPrimary">#009688</item>
-        <item name="colorPrimaryDark">#00796B</item>
-        <item name="colorAccent">#009688</item>
+        <item name="colorPrimary">#008577</item>
+        <item name="colorPrimaryDark">#008577</item>
+        <item name="colorAccent">#008577</item>
     </style>
 </resources>

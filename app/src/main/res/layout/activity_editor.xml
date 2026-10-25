@@ -12,7 +12,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="#009688"
+            android:background="#008577"
             app:titleTextColor="#FFFFFF" />
         <Spinner
             android:id="@+id/file_spinner"
@@ -30,7 +30,7 @@
                 android:gravity="end|top"
                 android:fontFamily="monospace"
                 android:textSize="14sp"
-                android:textColor="#757575"
+                android:textColor="#D0D0D0"
                 android:paddingEnd="8dp" />
             <EditText
                 android:id="@+id/editor"
@@ -40,6 +40,7 @@
                 android:gravity="top|start"
                 android:fontFamily="monospace"
                 android:textSize="14sp"
+                android:textColor="#222222"
                 android:hint="Pumili ng file sa itaas" />
         </LinearLayout>
         <LinearLayout
