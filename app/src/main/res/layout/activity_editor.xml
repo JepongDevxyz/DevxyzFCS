@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#009688"
+        app:titleTextColor="#FFFFFF" />
     <Spinner
         android:id="@+id/file_spinner"
         android:layout_width="match_parent"
@@ -49,6 +56,14 @@
             android:layout_weight="1"
             android:text="Ibalik ang backup" />
     </LinearLayout>
+    <TextView
+        android:id="@+id/errors_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="150dp">

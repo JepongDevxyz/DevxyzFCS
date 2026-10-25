@@ -13,8 +13,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -25,12 +23,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setSupportActionBar(findViewById(R.id.toolbar));
         RecyclerView list = findViewById(R.id.project_list);
         list.setLayoutManager(new LinearLayoutManager(this));
         adapter = new ProjectAdapter(ProjectManager.listProjects(this));
         list.setAdapter(adapter);
-        FloatingActionButton fab = findViewById(R.id.fab_new);
-        fab.setOnClickListener(v -> showNewProjectDialog());
+        findViewById(R.id.row_create).setOnClickListener(v -> showNewProjectDialog());
     }
 
     @Override

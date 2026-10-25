@@ -23,13 +23,16 @@ public class EditorActivity extends AppCompatActivity {
     private File currentFile;
     private EditText editor;
     private TextView logView;
+    private TextView errorsHeader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor);
+        setSupportActionBar(findViewById(R.id.toolbar));
         projectName = getIntent().getStringExtra("project");
         setTitle("DevxyzFCS - " + projectName);
+        errorsHeader = findViewById(R.id.errors_header);
         editor = findViewById(R.id.editor);
         logView = findViewById(R.id.build_log);
         Spinner spinner = findViewById(R.id.file_spinner);
@@ -55,7 +58,9 @@ public class EditorActivity extends AppCompatActivity {
         Button build = findViewById(R.id.btn_build);
         build.setOnClickListener(v -> {
             File project = ProjectManager.projectDir(this, projectName);
-            logView.setText(BuildValidator.validate(project));
+            String log = BuildValidator.validate(project);
+            logView.setText(log);
+            updateErrorsHeader(log);
         });
         Button autofix = findViewById(R.id.btn_autofix);
         autofix.setOnClickListener(v -> {
@@ -97,6 +102,7 @@ public class EditorActivity extends AppCompatActivity {
                 log.append("Auto-fix failed: ").append(e.getMessage()).append("\n");
             }
             logView.setText(log.toString());
+            updateErrorsHeader(log.toString());
             refreshFileList(spinner);
             if (currentFile != null) openFile(currentFile);
         });
@@ -107,13 +113,30 @@ public class EditorActivity extends AppCompatActivity {
                 int n = AutoFixer.restore(this, project);
                 Toast.makeText(this, n == 0 ? "Walang backup na ibabalik"
                         : "Naibalik ang " + n + " na file", Toast.LENGTH_SHORT).show();
-                logView.setText(BuildValidator.validate(project));
+                String log = BuildValidator.validate(project);
+                logView.setText(log);
+                updateErrorsHeader(log);
                 refreshFileList(spinner);
                 if (currentFile != null) openFile(currentFile);
             } catch (Exception e) {
                 Toast.makeText(this, "Restore failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    /** Errors header like a classic IDE: red X + count when errors exist. */
+    private void updateErrorsHeader(String log) {
+        int n = 0;
+        for (String line : log.split("\n")) {
+            if (line.startsWith("FAIL:") && !line.contains("kulang ang project")) n++;
+        }
+        if (n == 0) {
+            errorsHeader.setVisibility(View.GONE);
+        } else {
+            errorsHeader.setVisibility(View.VISIBLE);
+            errorsHeader.setText("\u2715 " + n + (n == 1 ? " error" : " errors"));
+            errorsHeader.setTextColor(0xFFD32F2F);
+        }
     }
 
     private void refreshFileList(Spinner spinner) {
