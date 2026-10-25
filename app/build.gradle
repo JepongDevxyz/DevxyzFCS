@@ -1,0 +1,26 @@
+plugins {
+    id 'com.android.application'
+}
+android {
+    namespace "xyz.devxyz.fcs"
+    compileSdkVersion 33
+    defaultConfig {
+        applicationId "xyz.devxyz.fcs"
+        minSdkVersion 21
+        targetSdkVersion 33
+        versionCode 1
+        versionName "1.0-aide"
+    }
+    buildTypes {
+        release { minifyEnabled false; shrinkResources false }
+        debug { debuggable true }
+    }
+    lintOptions { abortOnError false }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
+}
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.4.2'
+    implementation 'com.google.android.material:material:1.6.1'
+    implementation 'androidx.recyclerview:recyclerview:1.2.0'
+    implementation 'androidx.cardview:cardview:1.0.0'
+}
