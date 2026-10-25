@@ -8,10 +8,14 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.navigation.NavigationView;
 
 import java.util.List;
 
@@ -24,6 +28,26 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setSupportActionBar(findViewById(R.id.toolbar));
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, findViewById(R.id.toolbar),
+                R.string.app_name, R.string.app_name);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+        NavigationView nav = findViewById(R.id.nav_view);
+        nav.setNavigationItemSelectedListener(item -> {
+            drawer.closeDrawers();
+            int id = item.getItemId();
+            if (id == R.id.nav_settings) {
+                startActivity(new Intent(this, SettingsActivity.class));
+            } else if (id == R.id.nav_exit) {
+                finish();
+            } else {
+                android.widget.Toast.makeText(this,
+                        "Susuportahan sa susunod na phase", android.widget.Toast.LENGTH_SHORT).show();
+            }
+            return true;
+        });
         RecyclerView list = findViewById(R.id.project_list);
         list.setLayoutManager(new LinearLayoutManager(this));
         adapter = new ProjectAdapter(ProjectManager.listProjects(this));

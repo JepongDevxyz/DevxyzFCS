@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/nav_navigate" android:icon="@android:drawable/ic_menu_directions" android:title="Navigate Mode" />
+    <item android:id="@+id/nav_find" android:icon="@android:drawable/ic_menu_search" android:title="Find" />
+    <item android:id="@+id/nav_refactor" android:icon="@android:drawable/ic_menu_edit" android:title="Refactor" />
+    <item android:id="@+id/nav_code" android:icon="@android:drawable/ic_menu_view" android:title="Code" />
+    <item android:id="@+id/nav_format" android:icon="@android:drawable/ic_menu_sort_by_size" android:title="Format" />
+    <item android:id="@+id/nav_project" android:icon="@android:drawable/ic_menu_agenda" android:title="Project" />
+    <item android:id="@+id/nav_tools" android:icon="@android:drawable/ic_menu_manage" android:title="Tools" />
+    <item android:id="@+id/nav_settings" android:icon="@android:drawable/ic_menu_preferences" android:title="Settings" />
+    <item android:id="@+id/nav_exit" android:icon="@android:drawable/ic_menu_close_clear_cancel" android:title="Exit" />
+</menu>

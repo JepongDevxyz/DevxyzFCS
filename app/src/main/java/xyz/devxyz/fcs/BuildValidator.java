@@ -53,4 +53,37 @@ public class BuildValidator {
     private static void check(StringBuilder log, String what, boolean ok) {
         log.append(ok ? "OK: " : "FAIL: ").append(what).append("\n");
     }
+
+    /** Per-file issues for the errors panel: {file name, message}. */
+    public static java.util.List<String[]> fileIssues(File project) {
+        java.util.List<String[]> out = new java.util.ArrayList<>();
+        List<File> files = ProjectManager.listFiles(project);
+        boolean hasMainActivity = false, hasManifest = false, hasLayout = false;
+        boolean hasAppCompatImport = false, extendsAppCompat = false, hasAppCompatDep = false;
+        for (File f : files) {
+            String path = f.getPath();
+            try {
+                String c = ProjectManager.read(f);
+                if (path.endsWith("MainActivity.java")) {
+                    hasMainActivity = true;
+                    if (c.contains("import androidx.appcompat.app.AppCompatActivity")) hasAppCompatImport = true;
+                    if (c.contains("extends AppCompatActivity")) extendsAppCompat = true;
+                }
+                if (path.endsWith("AndroidManifest.xml")) hasManifest = true;
+                if (path.endsWith("activity_main.xml")) hasLayout = true;
+                if (path.endsWith("build.gradle") && c.contains("androidx.appcompat:appcompat")) hasAppCompatDep = true;
+            } catch (Exception ignored) {
+            }
+        }
+        if (!hasMainActivity) out.add(new String[]{"MainActivity.java", "File not found"});
+        if (!hasManifest) out.add(new String[]{"AndroidManifest.xml", "File not found"});
+        if (!hasLayout) out.add(new String[]{"activity_main.xml", "File not found"});
+        if (hasMainActivity && !hasAppCompatImport)
+            out.add(new String[]{"MainActivity.java", "AppCompat import missing (androidx.appcompat)"});
+        if (hasMainActivity && !extendsAppCompat)
+            out.add(new String[]{"MainActivity.java", "MainActivity does not extend AppCompatActivity"});
+        if (!hasAppCompatDep)
+            out.add(new String[]{"build.gradle", "appcompat dependency missing"});
+        return out;
+    }
 }

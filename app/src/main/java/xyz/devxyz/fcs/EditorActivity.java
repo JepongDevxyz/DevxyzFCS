@@ -2,15 +2,22 @@ package xyz.devxyz.fcs;
 
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.drawerlayout.widget.DrawerLayout;
+
+import com.google.android.material.navigation.NavigationView;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -24,6 +31,7 @@ public class EditorActivity extends AppCompatActivity {
     private EditText editor;
     private TextView logView;
     private TextView errorsHeader;
+    private LinearLayout errorsPanel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +41,35 @@ public class EditorActivity extends AppCompatActivity {
         projectName = getIntent().getStringExtra("project");
         setTitle("DevxyzFCS - " + projectName);
         errorsHeader = findViewById(R.id.errors_header);
+        errorsPanel = findViewById(R.id.errors_panel);
+        if (SettingsActivity.toggle(this, "Editor",
+                "Keep display on when editing code", false)) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, findViewById(R.id.toolbar),
+                R.string.app_name, R.string.app_name);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+        NavigationView nav = findViewById(R.id.nav_view);
+        nav.setNavigationItemSelectedListener(item -> {
+            drawer.closeDrawers();
+            int id = item.getItemId();
+            if (id == R.id.nav_find) {
+                showFindDialog();
+            } else if (id == R.id.nav_project) {
+                finish();
+            } else if (id == R.id.nav_settings) {
+                startActivity(new android.content.Intent(this, SettingsActivity.class));
+            } else if (id == R.id.nav_exit) {
+                finishAffinity();
+            } else {
+                Toast.makeText(this, "Susuportahan sa susunod na phase",
+                        Toast.LENGTH_SHORT).show();
+            }
+            return true;
+        });
         editor = findViewById(R.id.editor);
         logView = findViewById(R.id.build_log);
         Spinner spinner = findViewById(R.id.file_spinner);
@@ -60,7 +97,7 @@ public class EditorActivity extends AppCompatActivity {
             File project = ProjectManager.projectDir(this, projectName);
             String log = BuildValidator.validate(project);
             logView.setText(log);
-            updateErrorsHeader(log);
+            refreshErrors(project);
         });
         Button autofix = findViewById(R.id.btn_autofix);
         autofix.setOnClickListener(v -> {
@@ -102,7 +139,7 @@ public class EditorActivity extends AppCompatActivity {
                 log.append("Auto-fix failed: ").append(e.getMessage()).append("\n");
             }
             logView.setText(log.toString());
-            updateErrorsHeader(log.toString());
+            refreshErrors(project);
             refreshFileList(spinner);
             if (currentFile != null) openFile(currentFile);
         });
@@ -115,7 +152,7 @@ public class EditorActivity extends AppCompatActivity {
                         : "Naibalik ang " + n + " na file", Toast.LENGTH_SHORT).show();
                 String log = BuildValidator.validate(project);
                 logView.setText(log);
-                updateErrorsHeader(log);
+                refreshErrors(project);
                 refreshFileList(spinner);
                 if (currentFile != null) openFile(currentFile);
             } catch (Exception e) {
@@ -124,19 +161,77 @@ public class EditorActivity extends AppCompatActivity {
         });
     }
 
-    /** Errors header like a classic IDE: red X + count when errors exist. */
-    private void updateErrorsHeader(String log) {
-        int n = 0;
-        for (String line : log.split("\n")) {
-            if (line.startsWith("FAIL:") && !line.contains("kulang ang project")) n++;
-        }
+    /** Errors header + per-file errors panel, like a classic IDE. */
+    private void refreshErrors(File project) {
+        List<String[]> issues = BuildValidator.fileIssues(project);
+        int n = issues.size();
         if (n == 0) {
             errorsHeader.setVisibility(View.GONE);
-        } else {
-            errorsHeader.setVisibility(View.VISIBLE);
-            errorsHeader.setText("\u2715 " + n + (n == 1 ? " error" : " errors"));
-            errorsHeader.setTextColor(0xFFD32F2F);
+            errorsPanel.setVisibility(View.GONE);
+            errorsPanel.removeAllViews();
+            return;
         }
+        errorsHeader.setVisibility(View.VISIBLE);
+        errorsHeader.setText("\u2715 " + n + (n == 1 ? " error" : " errors"));
+        errorsHeader.setTextColor(0xFFD32F2F);
+        errorsPanel.setVisibility(View.VISIBLE);
+        errorsPanel.removeAllViews();
+        for (String[] issue : issues) {
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setPadding(8, 8, 8, 8);
+            TextView x = new TextView(this);
+            x.setText("\u2715");
+            x.setTextColor(0xFFD32F2F);
+            x.setTextSize(18);
+            x.setPadding(0, 0, 12, 0);
+            row.addView(x);
+            LinearLayout texts = new LinearLayout(this);
+            texts.setOrientation(LinearLayout.VERTICAL);
+            TextView file = new TextView(this);
+            file.setText(issue[0]);
+            file.setTextStyle(android.graphics.Typeface.BOLD);
+            TextView msg = new TextView(this);
+            msg.setText(issue[1]);
+            msg.setTextColor(0xFF757575);
+            texts.addView(file);
+            texts.addView(msg);
+            row.addView(texts);
+            final String fileName = issue[0];
+            row.setOnClickListener(v -> {
+                for (File f : files) {
+                    if (f.getName().equals(fileName)) {
+                        openFile(f);
+                        break;
+                    }
+                }
+            });
+            errorsPanel.addView(row);
+        }
+    }
+
+    private void showFindDialog() {
+        final EditText input = new EditText(this);
+        input.setHint("Hanapin sa file");
+        new AlertDialog.Builder(this)
+                .setTitle("Find")
+                .setView(input)
+                .setPositiveButton("Hanapin", (d, w) -> {
+                    String query = input.getText().toString();
+                    if (query.isEmpty()) return;
+                    String text = editor.getText().toString();
+                    int from = editor.getSelectionEnd();
+                    int found = text.indexOf(query, from);
+                    if (found < 0) found = text.indexOf(query);
+                    if (found < 0) {
+                        Toast.makeText(this, "Hindi mahanap", Toast.LENGTH_SHORT).show();
+                    } else {
+                        editor.setSelection(found, found + query.length());
+                        editor.requestFocus();
+                    }
+                })
+                .setNegativeButton("Kansela", null)
+                .show();
     }
 
     private void refreshFileList(Spinner spinner) {
