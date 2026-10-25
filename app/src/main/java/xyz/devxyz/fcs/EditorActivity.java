@@ -57,6 +57,63 @@ public class EditorActivity extends AppCompatActivity {
             File project = ProjectManager.projectDir(this, projectName);
             logView.setText(BuildValidator.validate(project));
         });
+        Button autofix = findViewById(R.id.btn_autofix);
+        autofix.setOnClickListener(v -> {
+            File project = ProjectManager.projectDir(this, projectName);
+            StringBuilder log = new StringBuilder();
+            try {
+                List<AutoFixer.Issue> issues = AutoFixer.detect(project);
+                if (issues.isEmpty()) {
+                    log.append("Auto-fix: walang maayos na error ang nakita.\n");
+                } else {
+                    // Preview first: show exactly what will change, then apply
+                    // one fix at a time so a failure stops before later fixes.
+                    log.append("Auto-fix: ").append(issues.size())
+                            .append(" na ayos ang nakita:\n");
+                    for (AutoFixer.Issue issue : issues) {
+                        String rel = issue.file.getPath()
+                                .substring(project.getPath().length() + 1);
+                        log.append("• ").append(rel).append(" — ").append(issue.title)
+                                .append(" (").append(issue.detail).append(")\n");
+                    }
+                    for (AutoFixer.Issue issue : issues) {
+                        try {
+                            AutoFixer.apply(this, project, issue);
+                            log.append("NA-AYOS: ").append(issue.title)
+                                    .append(" sa ").append(issue.file.getName()).append("\n");
+                        } catch (Exception e) {
+                            log.append("FAILED: ").append(issue.title)
+                                    .append(": ").append(e.getMessage()).append("\n");
+                            break;
+                        }
+                    }
+                    log.append("Backup: nasa autofix-backups/")
+                            .append(projectName)
+                            .append(" — pindutin ang 'Ibalik ang backup' para i-undo.\n");
+                }
+                log.append("\n--- Re-check pagkatapos ng auto-fix ---\n");
+                log.append(BuildValidator.validate(project));
+            } catch (Exception e) {
+                log.append("Auto-fix failed: ").append(e.getMessage()).append("\n");
+            }
+            logView.setText(log.toString());
+            refreshFileList(spinner);
+            if (currentFile != null) openFile(currentFile);
+        });
+        Button restore = findViewById(R.id.btn_restore);
+        restore.setOnClickListener(v -> {
+            File project = ProjectManager.projectDir(this, projectName);
+            try {
+                int n = AutoFixer.restore(this, project);
+                Toast.makeText(this, n == 0 ? "Walang backup na ibabalik"
+                        : "Naibalik ang " + n + " na file", Toast.LENGTH_SHORT).show();
+                logView.setText(BuildValidator.validate(project));
+                refreshFileList(spinner);
+                if (currentFile != null) openFile(currentFile);
+            } catch (Exception e) {
+                Toast.makeText(this, "Restore failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     private void refreshFileList(Spinner spinner) {
