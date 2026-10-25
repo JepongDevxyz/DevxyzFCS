@@ -21,7 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.os.Handler;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import android.view.View;
-import com.test.version.R;
+import xyz.devxyz.fcs.trinet.R;
 import android.text.Html;
 import com.slipkprojects.ultrasshservice.config.Settings;
 import android.view.MotionEvent;

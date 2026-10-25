@@ -31,7 +31,7 @@ import android.util.Log;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import com.slipkprojects.ultrasshservice.logger.SkStatus;
-import com.test.version.R;
+import xyz.devxyz.fcs.trinet.R;
 import com.slipkprojects.ultrasshservice.config.Settings;
 import android.content.SharedPreferences;
 

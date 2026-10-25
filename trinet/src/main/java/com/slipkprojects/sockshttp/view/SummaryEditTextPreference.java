@@ -1,4 +1,5 @@
 package com.slipkprojects.sockshttp.view;
+import xyz.devxyz.fcs.trinet.R;
 
 import android.content.Context;
 import android.util.AttributeSet;

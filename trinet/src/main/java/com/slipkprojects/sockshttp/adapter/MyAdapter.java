@@ -1,6 +1,6 @@
 package com.slipkprojects.sockshttp.adapter;
 
-import com.test.version.R;
+import xyz.devxyz.fcs.trinet.R;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;

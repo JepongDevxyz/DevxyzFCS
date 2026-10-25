@@ -15,7 +15,7 @@ import java.util.Locale;
 import java.util.PriorityQueue;
 import java.util.TreeSet;
 import java.util.Vector;
-import com.test.version.BuildConfig;
+import xyz.devxyz.fcs.trinet.BuildConfig;
 
 
 public class NetworkSpace {

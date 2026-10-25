@@ -8,7 +8,7 @@ import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import com.test.version.R;
+import xyz.devxyz.fcs.trinet.R;
 
 public class errors extends AppCompatActivity {
     TextView error;

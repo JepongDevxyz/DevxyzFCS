@@ -27,7 +27,7 @@ import android.net.NetworkInfo;
 import android.net.ConnectivityManager;
 import android.os.Build;
 import android.content.Context;
-import com.test.version.R;
+import xyz.devxyz.fcs.trinet.R;
 
 /**
  * By Skank3r

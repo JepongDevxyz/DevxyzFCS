@@ -35,7 +35,7 @@ import com.trilead.ssh2.ConnectionMonitor;
 import com.trilead.ssh2.DebugLogger;
 import com.trilead.ssh2.InteractiveCallback;
 import com.trilead.ssh2.ServerHostKeyVerifier;
-import com.test.version.R;
+import xyz.devxyz.fcs.trinet.R;
 import com.slipkprojects.ultrasshservice.config.PasswordCache;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;

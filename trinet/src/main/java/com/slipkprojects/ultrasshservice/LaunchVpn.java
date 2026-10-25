@@ -1,6 +1,6 @@
 package com.slipkprojects.ultrasshservice;
 
-import com.test.version.R;
+import xyz.devxyz.fcs.trinet.R;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;

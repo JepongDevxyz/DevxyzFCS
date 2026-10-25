@@ -16,7 +16,7 @@ import androidx.preference.CheckBoxPreference;
 import androidx.preference.SwitchPreferenceCompat;
 import android.content.Intent;
 import com.slipkprojects.sockshttp.MyApplication;
-import com.test.version.R;
+import xyz.devxyz.fcs.trinet.R;
 import androidx.preference.ListPreference;
 import android.content.Context;
 import androidx.appcompat.app.AppCompatDelegate;

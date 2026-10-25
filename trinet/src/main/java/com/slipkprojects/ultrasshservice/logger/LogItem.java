@@ -8,7 +8,7 @@ package com.slipkprojects.ultrasshservice.logger;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.test.version.R;
+import xyz.devxyz.fcs.trinet.R;
 import android.content.Context;
 import java.util.Locale;
 import java.util.UnknownFormatConversionException;

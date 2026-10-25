@@ -14,7 +14,7 @@ import android.content.SharedPreferences;
 import androidx.preference.PreferenceManager;
 import androidx.preference.CheckBoxPreference;
 import android.content.Intent;
-import com.test.version.R;
+import xyz.devxyz.fcs.trinet.R;
 import com.slipkprojects.ultrasshservice.logger.SkStatus;
 import com.slipkprojects.ultrasshservice.config.SettingsConstants;
 import com.slipkprojects.ultrasshservice.config.Settings;

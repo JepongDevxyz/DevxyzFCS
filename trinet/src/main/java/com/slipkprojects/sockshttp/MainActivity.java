@@ -44,7 +44,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import com.slipkprojects.ultrasshservice.util.securepreferences.SecurePreferences;
 import com.slipkprojects.ultrasshservice.util.securepreferences.SecurePreferences.Editor;
-import com.test.version.R;
+import xyz.devxyz.fcs.trinet.R;
 import android.os.Looper;
 import com.slipkprojects.sockshttp.activities.ConfigGeralActivity;
 import com.slipkprojects.sockshttp.util.JsonRequestConfig;

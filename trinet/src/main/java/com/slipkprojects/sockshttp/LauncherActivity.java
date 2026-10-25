@@ -3,7 +3,7 @@ package com.slipkprojects.sockshttp;
 import android.content.Intent;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import com.test.version.R;
+import xyz.devxyz.fcs.trinet.R;
 import com.slipkprojects.sockshttp.activities.BaseActivity;
 import android.os.Handler;
 import android.os.Looper;

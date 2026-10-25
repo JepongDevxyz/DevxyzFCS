@@ -51,7 +51,7 @@ import android.app.PendingIntent;
 import com.slipkprojects.ultrasshservice.logger.SkStatus;
 import com.slipkprojects.ultrasshservice.SocksHttpService;
 import android.content.pm.PackageManager;
-import com.test.version.R;
+import xyz.devxyz.fcs.trinet.R;
 
 /**
 * Baseado no Cordova Plugin Tun2Socks

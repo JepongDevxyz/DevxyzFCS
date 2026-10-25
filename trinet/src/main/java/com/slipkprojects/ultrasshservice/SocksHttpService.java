@@ -19,7 +19,7 @@ import android.os.IBinder;
 import androidx.annotation.RequiresApi;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.util.Log;
-import com.test.version.R;
+import xyz.devxyz.fcs.trinet.R;
 import com.slipkprojects.ultrasshservice.config.Settings;
 import com.slipkprojects.ultrasshservice.logger.ConnectionStatus;
 import com.slipkprojects.ultrasshservice.logger.SkStatus;

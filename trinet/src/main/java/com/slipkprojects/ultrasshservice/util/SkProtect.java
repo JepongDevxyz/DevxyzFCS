@@ -8,8 +8,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import android.util.Log;
 import android.widget.Toast;
-import com.test.version.BuildConfig;
-import com.test.version.R;
+import xyz.devxyz.fcs.trinet.BuildConfig;
+import xyz.devxyz.fcs.trinet.R;
 
 /**
  * @author Skank3r

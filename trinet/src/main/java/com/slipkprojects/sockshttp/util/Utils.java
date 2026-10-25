@@ -21,7 +21,7 @@ import java.io.Reader;
 import android.content.ComponentName;
 import androidx.appcompat.app.AlertDialog;
 import android.content.DialogInterface;
-import com.test.version.R;
+import xyz.devxyz.fcs.trinet.R;
 
 public class Utils
 {
